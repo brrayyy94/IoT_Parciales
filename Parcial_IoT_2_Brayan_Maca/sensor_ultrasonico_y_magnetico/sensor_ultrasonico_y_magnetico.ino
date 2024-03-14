@@ -8,27 +8,26 @@
 #include "time.h"
 
 // Pines utilizados
-#define TRIGGER 9
-#define ECHO 10
-#define sensor 14
+#define TRIGGER 27
+#define ECHO 26
+#define sensor 25
 
 // Constantes
 const float sonido = 34300.0;  // Velocidad del sonido en cm/s
-int sensorValueMagnetic;
+int sensorValueMagnetic = HIGH;
 String magnetic, magnetic_previo, presenciaAux;
 
 // definir algunas constantes y variables necesarias
 //para establecer la conexión a un servidor MQTT
 #define mqttUser "brayan.maca@uao.edu.co"
 #define mqttPass "Megustamaqiatto09!"
-#define mqttUser2 "brayanmaca94@gmail.com"
-#define mqttPass2 "Maqiatto123!"
+
 #define mqttPort 1883
 String timeinfo;
 const char* ssid = "iPhone de Brayan";                         //ssid de la red inalambrica
 const char* password = "brrayyy09";                            //password para conectarse a la red
 char mqttBroker[] = "maqiatto.com";                            //ip del servidor
-char mqttClientId[] = "e958fe5d-5aac-48a1-90fb-ffce49e989dc";  //cualquier nombre
+char mqttClientId[] = "mqtt-explorer-ae32cbeb";  //cualquier nombre
 
 //HORA
 const char* ntpServer = "pool.ntp.org";
@@ -59,13 +58,13 @@ unsigned long hora() {
 }
 void reconnect() {
   // Loop until we're reconnected
-  while (!client.connected() || !client2.connected()) {
+  while (!client.connected()) {
     Serial.print("Attempting MQTT connection...");
 
     // Attempt to connect to the first MQTT broker
     if (!client.connected()) {
       if (client.connect(mqttClientId, mqttUser, mqttPass)) {
-        Serial.println("Connected to Broker 1");
+        Serial.println("Connected to Broker");
         // Publish data to Broker 1
         // Crear un objeto JSON StaticJsonDocument con capacidad suficiente
         StaticJsonDocument<256> jsonMagnetic;
@@ -94,8 +93,7 @@ void reconnect() {
           Serial.println(variable);
           char datojson1[lonMagnetic];
           variable.toCharArray(datojson1, lonMagnetic);
-          //client.publish("brayan.maca@uao.edu.co/SensorMagneticoParcial", datojson1);
-          client.publish(mqttUser, "/SensorMagneticoParcial", datojson1);
+          client.publish("brayan.maca@uao.edu.co/SensorMagneticoParcial", datojson1);
 
           Serial.println();
         }
@@ -125,8 +123,7 @@ void reconnect() {
           Serial.println(variable);
           char datojson2[lonUltrasonido];
           variable.toCharArray(datojson2, lonUltrasonido);
-          //client.publish("brayan.maca@uao.edu.co/SensorUltrasonicoParcial", datojson2);
-          client.publish(mqttUser, "/SensorUltrasonicoParcial", datojson2);
+          client.publish("brayan.maca@uao.edu.co/SensorUltrasonicoParcial", datojson2);
           Serial.println();
         }
         client.disconnect();
@@ -134,115 +131,19 @@ void reconnect() {
         Serial.println();
 
       } else {
-        Serial.print("Failed to connect to Broker 1, rc=");
+        Serial.print("Failed to connect to Broker, rc=");
         Serial.print(client.state());
         Serial.println(" Try again in 5 seconds");
         delay(5000);
       }
     }
-
-    // Attempt to connect to the second MQTT broker
-    if (!client2.connected()) {
-      if (client2.connect(mqttClientId, mqttUser2, mqttPass2)) {
-        Serial.println("Connected to Broker 2");
-        // Publish data to Broker 2
-        // Crear un objeto JSON StaticJsonDocument con capacidad suficiente
-        StaticJsonDocument<256> jsonMagnetic;
-        StaticJsonDocument<256> jsonDistance;
-        String variable;
-
-        unsigned long t_unix_date1 = hora() - 18000;
-        // Obtener la fecha y hora en formato legible
-        String fecha_hora = String(year(t_unix_date1)) + "/" + String(month(t_unix_date1)) + "/" + String(day(t_unix_date1)) + " " + String(hour(t_unix_date1)) + ":" + String(minute(t_unix_date1)) + ":" + String(second(t_unix_date1));
-
-        // Leer del sensor magnetico
-        // Obtener el estado actual de la puerta
-        String magnetic = validarPuerta();
-        // Comparar con el estado previo
-        if (magnetic != magnetic_previo) {  // Si el estado actual es diferente al estado previo
-          // Actualizar el estado previo
-          magnetic_previo = magnetic;
-
-          // Publicar la información
-          jsonMagnetic["id"] = "01";
-          jsonMagnetic["sensor"] = "Magnetico";
-          jsonMagnetic["value"] = magnetic;
-          jsonMagnetic["Fecha y Hora"] = fecha_hora;
-          serializeJsonPretty(jsonMagnetic, variable);
-          int lonMagnetic = variable.length() + 1;
-          Serial.println(variable);
-          char datojson1[lonMagnetic];
-          variable.toCharArray(datojson1, lonMagnetic);
-          //client.publish("brayan.maca@uao.edu.co/SensorMagneticoParcial", datojson1);
-          client.publish(mqttUser, "/SensorMagneticoParcial", datojson1);
-
-          Serial.println();
-        }
-
-        // Leer del sensor de ultrasonido
-        // Preparamos el sensor de ultrasonidos
-        iniciarTrigger();
-        // Obtenemos la distancia
-        float distancia = calcularDistancia();
-        //teniendo como referencia una altura del techo al suelo de
-        //240 cm en el garaje y el auto una altura de 150 cm
-        String presenciaCarro = "";
-        if (distancia > 90) {
-          presenciaCarro = "Ausente";
-        } else if (distancia <= 90) {
-          presenciaCarro = "Presente";
-        }
-        if (presenciaCarro != presenciaAux) {
-          presenciaAux = presenciaCarro;
-          // Publicar la información solo cuando cambie el estado
-          jsonDistance["id"] = "01";
-          jsonDistance["sensor"] = "Ultrasonido";
-          jsonDistance["value"] = distancia;
-          jsonDistance["presence"] = presenciaCarro;
-          jsonDistance["Fecha y Hora"] = fecha_hora;
-          serializeJsonPretty(jsonDistance, variable);
-          int lonUltrasonido = variable.length() + 1;
-          Serial.println(variable);
-          char datojson2[lonUltrasonido];
-          variable.toCharArray(datojson2, lonUltrasonido);
-          //client.publish("brayan.maca@uao.edu.co/SensorUltrasonicoParcial", datojson2);
-          client.publish(mqttUser, "/SensorUltrasonicoParcial", datojson2);
-          Serial.println();
-        }
-        client.disconnect();
-        delay(100);
-        Serial.println();
-
-      } else {
-        Serial.print("Failed to connect to Broker 2, rc=");
-        Serial.print(client2.state());
-        Serial.println(" Try again in 5 seconds");
-        delay(5000);
-      }
-    }
   }
-  // while (!client.connected()) {
-  //   Serial.print("Attempting MQTT connection...");
-  //   // Attempt to connect
-  //   if (client.connect(mqttClientId, mqttUser, mqttPass)) {
-  //     Serial.println("connected");  // Once connected, publish an anouncement.
-
-  //   } else {
-  //     Serial.print("failed, rc=");
-
-  //     Serial.print(client.state());
-  //     Serial.println(" try again in 5 seconds");
-  //     // Wait 5 seconds before retrying
-  //     delay(5000);
-  //   }
-  // }
 }
-
 //Metodo para validar si la puerta esta abierta o cerrada
 //Devuel variable de tipo cadena
 String validarPuerta() {
   sensorValueMagnetic = digitalRead(sensor);
-  if (sensorValueMagnetic == HIGH) {
+  if (sensorValueMagnetic == LOW) {
     magnetic = "Puerta abierta";
     delay(100);
   } else {
