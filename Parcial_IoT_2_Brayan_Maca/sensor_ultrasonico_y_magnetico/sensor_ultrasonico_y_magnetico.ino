@@ -41,6 +41,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   for (int i = 0; i < length; i++) {
     Serial.print((char)payload[i]);
   }
+  String json = String((char*)payload);
   Serial.println();
 
   StaticJsonDocument<300> doc;

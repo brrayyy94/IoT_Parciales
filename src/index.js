@@ -44,15 +44,38 @@ client.on("message", function (topic, message) {
         console.log("Conexion correcta.");
         tempConn.query(
           "INSERT INTO datosmagneticoparcial VALUES(null, ?, ?, now())",
-          [json1.id, json1.valueInfrarrojo],
+          [json1.id, json1.valueMagnetico],
           function (error, result) {
             //se ejecuta lainserción
             if (error) {
               throw error;
-              console.log("error al ejecutar el query"); //esto no se esta ejecutando
             } else {
-              tempConn.release();
               console.log("datos almacenados"); //mensaje de respuesta en consola
+              var presencia = json1.valueMagnetico;
+
+              if (presencia == "Puerta abierta") {
+                json2 = { estadoVs: 0 };
+              } else {
+                json2 = { estadoVs: 1 };
+              }
+
+              client.publish("brayan/topico2", JSON.stringify(json2));
+
+              tempConn.query(
+                "INSERT INTO estado VALUES(null, ?, ?, now())",
+                [json1.id, json2.estadoVs],
+                function (error, result) {
+                  //se ejecuta lainserción
+                  if (error) {
+                    throw error;
+                    console.log("error al ejecutar el query"); //esto no se esta ejecutando
+                  } else {
+                    tempConn.release();
+                    console.log("datos almacenados"); //mensaje de respuesta en consola
+                  }
+                  //client.end() //si se habilita esta opción el servicio termina
+                }
+              );
             }
             //client.end() //si se habilita esta opción el servicio termina
           }
@@ -84,15 +107,5 @@ client.on("message", function (topic, message) {
       }
     });
   }
-  var presencia = json1.valueMagnetico;
-
-  if ( presencia == "Puerta abierta") {
-    json2 = { estadoVs: 0 };
-  } else {
-    json2 = { estadoVs: 1 };
-  }
-
-  client.publish("brayan/topico2", JSON.stringify(json2));
-
   //client.end(); //si se habilita esta opción el servicio termina
 });

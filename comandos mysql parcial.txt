@@ -1,0 +1,20 @@
+CREATE TABLE datosUltrasonidoParcial (
+id int AUTO_INCREMENT,
+idnodo INT,
+distancia DOUBLE,
+fechahora DATETIME,
+PRIMARY KEY (id));
+
+CREATE TABLE datosMagneticoParcial (
+id int AUTO_INCREMENT,
+idnodo INT,
+presencia int,
+fechahora DATETIME,
+PRIMARY KEY (id));
+
+CREATE TABLE estado (
+id int AUTO_INCREMENT,
+idnodo INT,
+valor INT,
+fechahora DATETIME,
+PRIMARY KEY (id));
