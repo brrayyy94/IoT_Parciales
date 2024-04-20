@@ -90,8 +90,8 @@ client.on("message", function (topic, message) {
       } else {
         console.log("Conexion correcta.");
         tempConn.query(
-          "INSERT INTO datosultrasonidoparcial VALUES(null, ?, ?, now())",
-          [json1.id, json1.valueUltrasonido],
+          "INSERT INTO datosultrasonidoparcial VALUES(null, ?, ?, ?, now())",
+          [json1.id, json1.valueUltrasonido, json1.presence],
           function (error, result) {
             //se ejecuta lainserción
             if (error) {

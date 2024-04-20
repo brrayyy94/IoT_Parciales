@@ -1,14 +1,17 @@
 CREATE TABLE datosUltrasonidoParcial (
-id int AUTO_INCREMENT,
-idnodo INT,
-distancia DOUBLE,
-fechahora DATETIME,
-PRIMARY KEY (id));
+    id INT AUTO_INCREMENT,
+    idnodo INT,
+    distancia DOUBLE,
+    `presencia` VARCHAR(255),
+    fechahora DATETIME,
+    PRIMARY KEY (id)
+);
+
 
 CREATE TABLE datosMagneticoParcial (
 id int AUTO_INCREMENT,
 idnodo INT,
-presencia int,
+estadoPuerta VARCHAR(255),
 fechahora DATETIME,
 PRIMARY KEY (id));
 

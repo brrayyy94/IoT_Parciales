@@ -11,6 +11,7 @@
 #define TRIGGER 27
 #define ECHO 26
 #define sensor 25
+#define Led 33
 
 // Constantes
 const float sonido = 34300.0;  // Velocidad del sonido en cm/s
@@ -26,7 +27,7 @@ String magnetic, magnetic_previo, presenciaAux;
 String timeinfo;
 const char* ssid = "iPhone de Brayan";           //ssid de la red inalambrica
 const char* password = "brrayyy09";              //password para conectarse a la red
-char mqttBroker[] = "maqiatto.com";              //ip del servidor
+char mqttBroker[] = "broker.mqtt-dashboard.com";              //ip del servidor
 char mqttClientId[] = "mqtt-explorer-ae32cbeb";  //cualquier nombre
 
 //HORA
@@ -50,10 +51,10 @@ void callback(char* topic, byte* payload, unsigned int length) {
   int estado = doc["estadoVs"];
   //Serial.println(estado);
   if (estado == 0) {
-    //digitalWrite(Led, HIGH);
+    digitalWrite(Led, HIGH);
     Serial.println("Luz encendida");
   } else {
-    //digitalWrite(Led, LOW);
+    digitalWrite(Led, LOW);
     Serial.println("Luz apagada");
   }
 }
@@ -143,6 +144,7 @@ void setup() {
   pinMode(ECHO, INPUT);
   pinMode(TRIGGER, OUTPUT);
   pinMode(sensor, INPUT);
+  pinMode(Led, OUTPUT);
 
 
   Serial.println("Iniciando sensores...");
