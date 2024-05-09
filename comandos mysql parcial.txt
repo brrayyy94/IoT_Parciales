@@ -1,23 +1,31 @@
 CREATE TABLE datosUltrasonidoParcial (
-    id INT AUTO_INCREMENT,
-    idnodo INT,
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    usuario_id INT NOT NULL,
+    idnodo INT NOT NULL,
     distancia DOUBLE,
-    `presencia` VARCHAR(255),
+    presencia VARCHAR(255),
     fechahora DATETIME,
-    PRIMARY KEY (id)
-);
-
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id));
 
 CREATE TABLE datosMagneticoParcial (
-id int AUTO_INCREMENT,
+id int AUTO_INCREMENT PRIMARY KEY,
+usuario_id INT NOT NULL,
 idnodo INT,
 estadoPuerta VARCHAR(255),
 fechahora DATETIME,
-PRIMARY KEY (id));
+FOREIGN KEY (usuario_id) REFERENCES usuarios(id));
 
 CREATE TABLE estado (
-id int AUTO_INCREMENT,
+id int AUTO_INCREMENT PRIMARY KEY,
+usuario_id INT NOT NULL,
 idnodo INT,
 valor INT,
 fechahora DATETIME,
-PRIMARY KEY (id));
+FOREIGN KEY (usuario_id) REFERENCES usuarios(id));
+
+CREATE TABLE usuarios (
+id INT AUTO_INCREMENT PRIMARY KEY,
+user VARCHAR(255) NOT NULL,
+password VARCHAR(255) NOT NULL,
+userType ENUM('admin', 'cliente') NOT NULL
+);

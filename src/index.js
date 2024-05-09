@@ -1,15 +1,35 @@
 var mqtt = require("mqtt");
 const mysql = require("mysql");
+const express = require("express");
+const morgan = require("morgan");
+const cors = require("cors");
+const routes = require("./routes/routes.js");
+
+const app = express();//creamos una instancia de express
 
 //var client = mqtt.connect('mqtt://localhost)
 var client = mqtt.connect("mqtt://broker.mqtt-dashboard.com");
+
+app.set("port", process.env.PORT || 3000);
+
+app.use(buildContainer);
+app.use(bodyParser.json());
+app.use(morgan("dev"));
+app.use(cors());
+
+routes(app);
+
+app.get("/", (req, res) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.send("Este es el principal");
+});
 
 const connection = mysql.createPool({
   connectionLimit: 500,
   host: "localhost",
   user: "root",
   password: "", //el password de ingreso a mysql
-  database: "calidatos",
+  database: "parcialIOT",
   port: 3306,
 });
 
@@ -43,8 +63,8 @@ client.on("message", function (topic, message) {
       } else {
         console.log("Conexion correcta.");
         tempConn.query(
-          "INSERT INTO datosmagneticoparcial VALUES(null, ?, ?, now())",
-          [json1.id, json1.valueMagnetico],
+          "INSERT INTO datosmagneticoparcial VALUES(null, ?, ?, ?, now())",
+          [json1.usuario_id, json1.id, json1.valueMagnetico],
           function (error, result) {
             //se ejecuta lainserción
             if (error) {
@@ -90,8 +110,8 @@ client.on("message", function (topic, message) {
       } else {
         console.log("Conexion correcta.");
         tempConn.query(
-          "INSERT INTO datosultrasonidoparcial VALUES(null, ?, ?, ?, now())",
-          [json1.id, json1.valueUltrasonido, json1.presence],
+          "INSERT INTO datosultrasonidoparcial VALUES(null, ?, ?, ?, ?, now())",
+          [json1.usuario_id, json1.id, json1.valueUltrasonido, json1.presence],
           function (error, result) {
             //se ejecuta lainserción
             if (error) {
