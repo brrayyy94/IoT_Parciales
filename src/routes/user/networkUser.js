@@ -1,8 +1,11 @@
 const { Router } = require("express");
+const mqtt = require("mqtt");
 
 const router = Router();
 
 const mysql = require("mysql");
+
+var client = mqtt.connect("mqtt://broker.mqtt-dashboard.com");
 
 // se crea la conexión a mysql
 const connection = mysql.createPool({
@@ -72,17 +75,12 @@ router.post("/login", (req, res) => {
           res.status(500).send("Error en la ejecución del query.");
         } else {
           tempConn.release(); // Liberar la conexión
-
-          const responseData = {}; // Objeto JSON para almacenar los resultados
-
           if (result.length > 0) {
-            result.forEach((row, index) => {
-              responseData[`user${index + 1}`] = row; // Almacena cada registro en el objeto JSON
-            });
-            res.json(responseData); // Devolver los registros como respuesta JSON
+            client.publish("brayan/login", JSON.stringify({"id": result[0].id}));
+            res.json(result);
           } else {
             res.status(404).json({
-              mensaje: "No se encontraron registros con ese user y password.",
+              mensaje: "No se encontraron registros para hoy con ese idnodo.",
             });
           }
         }
@@ -90,5 +88,137 @@ router.post("/login", (req, res) => {
     }
   });
 });
+
+// router.get("/:id", (req, res) => {
+//   const { id } = req.params;
+
+//   // Función para realizar consultas SQL
+//   function realizarConsulta(query, params) {
+//     return new Promise((resolve, reject) => {
+//       connection.query(query, params, (error, result) => {
+//         if (error) {
+//           reject(error);
+//         } else {
+//           resolve(result);
+//         }
+//       });
+//     });
+//   }
+
+//   // Consulta para obtener datos del usuario
+//   const queryUsuario = `SELECT id, user, password FROM usuarios WHERE id = ?`;
+//   realizarConsulta(queryUsuario, [id])
+//     .then((resultUsuario) => {
+//       const usuario = resultUsuario[0];
+
+//       // Consulta para obtener nodos asociados al usuario
+//       const queryNodos = `
+//         SELECT idnodo 
+//         FROM (
+//           SELECT idnodo FROM datosultrasonidoparcial WHERE usuario_id = ?
+//           UNION
+//           SELECT idnodo FROM datosmagneticoparcial WHERE usuario_id = ?
+//         ) AS nodos_unicos`;
+//       return realizarConsulta(queryNodos, [id, id, id])
+//         .then((resultNodos) => {
+//           const nodos = resultNodos.map((nodo) => ({ idnodo: nodo.idnodo }));
+//           return { usuario, nodos };
+//         });
+//     })
+//     .then((data) => {
+//       res.json(data);
+//     })
+//     .catch((error) => {
+//       console.error("Error en la consulta:", error);
+//       res.status(500).json({ mensaje: "Error en la consulta SQL." });
+//     });
+// });
+
+
+//trae los datos de los nodos asociados a un usuario
+router.get("/:id", (req, res) => {
+  const { id } = req.params;
+
+  // Función para realizar consultas SQL
+  function realizarConsulta(query, params) {
+    return new Promise((resolve, reject) => {
+      connection.query(query, params, (error, result) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(result);
+        }
+      });
+    });
+  }
+
+  // Consulta para obtener datos del usuario, nodos y datos asociados
+  const queryDatosUsuario = `
+  SELECT 
+    u.id AS usuario_id, u.user, u.password,
+    d.idnodo,
+    dul.usuario_id AS dul_usuario_id, dul.idnodo AS dul_id, dul.distancia AS dul_distancia, dul.presencia AS dul_presencia, dul.fechahora AS dul_fechahora,
+    dmp.usuario_id AS dmp_usuario_id, dmp.idnodo AS dmp_id, dmp.estadoPuerta AS dmp_estadoPuerta, dmp.fechahora AS dmp_fechahora
+FROM usuarios u
+LEFT JOIN (
+    SELECT DISTINCT idnodo, usuario_id FROM (
+        SELECT idnodo, usuario_id FROM datosultrasonidoparcial
+        UNION ALL
+        SELECT idnodo, usuario_id FROM datosmagneticoparcial
+    ) AS nodos_distintos
+) d ON u.id = d.usuario_id
+LEFT JOIN datosultrasonidoparcial dul ON d.idnodo = dul.idnodo
+LEFT JOIN datosmagneticoparcial dmp ON d.idnodo = dmp.idnodo
+WHERE u.id = ?`;
+
+  realizarConsulta(queryDatosUsuario, [id])
+    .then((result) => {
+      const nodos = {};
+
+      // Organizar los datos por nodo
+      result.forEach((row) => {
+        const idnodo = row.idnodo;
+        if (!nodos[idnodo]) {
+          nodos[idnodo] = {
+            usuario_id: row.usuario_id,
+            user: row.user,
+            password: row.password,
+            idnodo: row.idnodo,
+            datos_ultrasonido: [],
+            datos_magnetico: []
+          };
+        }
+
+        // Agregar los datos correspondientes al tipo de sensor
+        if (row.dul_id) {
+          nodos[idnodo].datos_ultrasonido.push({
+            dul_id: row.dul_id,
+            dul_distancia: row.dul_distancia,
+            dul_presencia: row.dul_presencia,
+            dul_fechahora: row.dul_fechahora
+          });
+        }
+
+        if (row.dmp_id) {
+          nodos[idnodo].datos_magnetico.push({
+            dmp_id: row.dmp_id,
+            estadoPuerta: row.dmp_estadoPuerta,
+            dmp_fechahora: row.dmp_fechahora
+          });
+        }
+      });
+
+      // Convertir el objeto de nodos a un arreglo
+      const nodosArray = Object.values(nodos);
+
+      res.json(nodosArray);
+    })
+    .catch((error) => {
+      console.error("Error en la consulta:", error);
+      res.status(500).json({ mensaje: "Error en la consulta SQL." });
+    });
+});
+
+
 
 module.exports = router;

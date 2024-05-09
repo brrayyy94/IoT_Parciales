@@ -1,25 +1,24 @@
-const { Router } = require('express');
+const { Router } = require("express");
 
 const router = Router();
 
-const mysql = require('mysql');
+const mysql = require("mysql");
+
+//presencia es Ausente/Presente
+//distancia es en cm
 
 // se crea la conexión a mysql
 const connection = mysql.createPool({
-    connectionLimit: 500,
-    host: "localhost",
-    user: "root",
-    password: "", //el password de ingreso a mysql
-    database: "parcialIOT",
-    port: 3306,
-  });
-
-router.get("/", (req, res) => {
-    res.status(200).send("Bienvenido a la API de nodos");
+  connectionLimit: 500,
+  host: "localhost",
+  user: "root",
+  password: "", //el password de ingreso a mysql
+  database: "parcialIOT",
+  port: 3306,
 });
 
-  //rutas para ultrasonido (get, post, delete, put)
-router.get("/magnetico", (req, res) => {
+//rutas para ultrasonido (get, post, delete, put)
+router.get("/ultrasonido", (req, res) => {
   var json1 = {}; //variable para almacenar cada registro que se lea, en  formato json
   var arreglo = []; //variable para almacenar todos los datos, en formato arreglo de json
   connection.getConnection(function (error, tempConn) {
@@ -30,7 +29,7 @@ router.get("/magnetico", (req, res) => {
       console.log("Conexion correcta.");
       //ejecución de la consulta
       tempConn.query(
-        "SELECT * FROM datosmagneticoparcial where id = 1",
+        "SELECT * FROM datosultrasonidoparcial where id = 1",
         function (error, result) {
           var resultado = result; //se almacena el resultado de la consulta en la variable resultado
           if (error) {
@@ -43,7 +42,8 @@ router.get("/magnetico", (req, res) => {
                 id: resultado[i].id,
                 usuario_id: resultado[i].usuario_id,
                 idnodo: resultado[i].idnodo,
-                estadoPuerta: resultado[i].estadoPuerta,
+                distancia: resultado[i].distancia,
+                presencia: resultado[i].presencia,
                 fechahora: resultado[i].fechahora,
               };
               console.log(json1); //se muestra el json en la consola
@@ -58,7 +58,7 @@ router.get("/magnetico", (req, res) => {
 });
 
 // Ruta GET para obtener datos de `datosUltrasonido` filtrados por `idnodo`
-router.get("/magnetico/:idnodo", (req, res) => {
+router.get("/ultrasonido/:idnodo", (req, res) => {
   const { idnodo } = req.params;
 
   connection.getConnection((error, tempConn) => {
@@ -69,8 +69,8 @@ router.get("/magnetico/:idnodo", (req, res) => {
       console.log("Conexión correcta.");
 
       const query = `
-        SELECT * FROM datosmagneticoparcial
-        WHERE DATE(fechahora) = CURDATE() AND idnodo = ?`;
+          SELECT * FROM datosultrasonidoparcial
+          WHERE DATE(fechahora) = CURDATE() AND idnodo = ?`;
 
       tempConn.query(query, [idnodo], (error, result) => {
         if (error) {
@@ -92,7 +92,7 @@ router.get("/magnetico/:idnodo", (req, res) => {
   });
 });
 
-router.post("/magnetico", (req, res) => {
+router.post("/ultrasonido/admin", (req, res) => {
   var json1 = req.body;
   console.log(json1);
 
@@ -103,7 +103,7 @@ router.post("/magnetico", (req, res) => {
     } else {
       console.log("Conexión correcta.");
       // Consulta para verificar si el usuario ya existe
-      const checkUserQuery = `SELECT COUNT(*) AS count FROM datosmagneticoparcial WHERE idnodo = ?`;
+      const checkUserQuery = `SELECT COUNT(*) AS count FROM datosultrasonidoparcial WHERE idnodo = ?`;
 
       tempConn.query(checkUserQuery, [json1.idnodo], (error, result) => {
         if (error) {
@@ -124,8 +124,13 @@ router.post("/magnetico", (req, res) => {
             });
           } else {
             tempConn.query(
-              "INSERT INTO datosmagneticoparcial VALUES(null, ?, ?, ?, now())",
-              [json1.usuario_id, json1.idnodo, json1.estadoPuerta],
+              "INSERT INTO datosultrasonidoparcial VALUES(null, ?, ?, ?, ?, now())",
+              [
+                json1.usuario_id,
+                json1.idnodo,
+                json1.distancia,
+                json1.presencia,
+              ],
               function (error, result) {
                 if (error) {
                   console.error(error.message);
@@ -143,7 +148,7 @@ router.post("/magnetico", (req, res) => {
   });
 });
 
-router.delete("/magnetico", (req, res) => {
+router.delete("/ultrasonido/admin", (req, res) => {
   var json1 = req.body; // Se recibe el JSON con los datos
   console.log(json1); // Se muestra en consola
 
@@ -157,7 +162,7 @@ router.delete("/magnetico", (req, res) => {
       console.log("Conexión correcta.");
 
       tempConn.query(
-        "DELETE FROM datosmagneticoparcial WHERE idnodo = ?",
+        "DELETE FROM datosultrasonidoparcial WHERE idnodo = ?",
         [json1.idnodo],
         function (error, result) {
           // Se ejecuta la eliminación
@@ -178,7 +183,7 @@ router.delete("/magnetico", (req, res) => {
   });
 });
 
-router.put("/magnetico", (req, res) => {
+router.put("/ultrasonido/admin", (req, res) => {
   var json1 = req.body;
   console.log(json1);
 
@@ -190,8 +195,8 @@ router.put("/magnetico", (req, res) => {
       console.log("Conexión correcta.");
 
       tempConn.query(
-        "UPDATE datosmagneticoparcial SET estadoPuerta = ? WHERE idnodo = ?",
-        [json1.estadoPuerta, json1.idnodo],
+        "UPDATE datosultrasonidoparcial SET distancia = ?, presencia = ?  WHERE idnodo = ?",
+        [json1.distancia, json1.presencia, json1.idnodo],
         function (error, result) {
           if (error) {
             console.error(error.message);
@@ -206,4 +211,4 @@ router.put("/magnetico", (req, res) => {
   });
 });
 
-  module.exports = router;
+module.exports = router;

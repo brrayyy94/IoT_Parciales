@@ -17,6 +17,7 @@
 const float sonido = 34300.0;  // Velocidad del sonido en cm/s
 int sensorValueMagnetic = HIGH;
 String magnetic, magnetic_previo, presenciaAux;
+const int usuario_id = 1;  //variable que almacena el id del usuario que inició sesión
 
 // definir algunas constantes y variables necesarias
 //para establecer la conexión a un servidor MQTT
@@ -25,10 +26,10 @@ String magnetic, magnetic_previo, presenciaAux;
 
 #define mqttPort 1883
 String timeinfo;
-const char* ssid = "iPhone de Brayan";           //ssid de la red inalambrica
-const char* password = "brrayyy09";              //password para conectarse a la red
-char mqttBroker[] = "broker.mqtt-dashboard.com";              //ip del servidor
-char mqttClientId[] = "mqtt-explorer-ae32cbeb";  //cualquier nombre
+const char* ssid = "iPhone de Brayan";            //ssid de la red inalambrica
+const char* password = "brrayyy09";               //password para conectarse a la red
+char mqttBroker[] = "broker.mqtt-dashboard.com";  //ip del servidor
+char mqttClientId[] = "mqtt-explorer-ae32cbeb";   //cualquier nombre
 
 //HORA
 const char* ntpServer = "pool.ntp.org";
@@ -45,17 +46,27 @@ void callback(char* topic, byte* payload, unsigned int length) {
   String json = String((char*)payload);
   Serial.println();
 
-  StaticJsonDocument<300> doc;
-  DeserializationError error = deserializeJson(doc, json);
-  if (error) { return; }
-  int estado = doc["estadoVs"];
-  //Serial.println(estado);
-  if (estado == 0) {
-    digitalWrite(Led, HIGH);
-    Serial.println("Luz encendida");
-  } else {
-    digitalWrite(Led, LOW);
-    Serial.println("Luz apagada");
+  if (topic == "brayan/topico2") {
+    StaticJsonDocument<300> doc;
+    DeserializationError error = deserializeJson(doc, json);
+    if (error) { return; }
+    int estado = doc["estadoVs"];
+    //Serial.println(estado);
+    if (estado == 0) {
+      digitalWrite(Led, HIGH);
+      Serial.println("Luz encendida");
+    } else {
+      digitalWrite(Led, LOW);
+      Serial.println("Luz apagada");
+    }
+  }
+  if (topic == "brayan/login") {
+    StaticJsonDocument<300> doc;
+    DeserializationError error = deserializeJson(doc, json);
+    if (error) { return; }
+    int login = doc["id"];
+    Serial.println(login);
+    usuario_id=login;
   }
 }
 WiFiClient BClient;
@@ -81,6 +92,7 @@ void reconnect() {
       if (client.connect(mqttClientId, mqttUser, mqttPass)) {
         Serial.println("Connected to Broker");
         client.subscribe("brayan/topico2");
+        client.subscribe("brayan/login");
       } else {
         Serial.print("Failed to connect to Broker, rc=");
         Serial.print(client.state());
@@ -174,7 +186,6 @@ void loop() {
   }
   client.loop();
 
-
   // Crear un objeto JSON StaticJsonDocument con capacidad suficiente
   StaticJsonDocument<256> jsonMagnetic;
   StaticJsonDocument<256> jsonDistance;
@@ -193,10 +204,11 @@ void loop() {
     magnetic_previo = magnetic;
 
     // Publicar la información
-    jsonMagnetic["id"] = "01";
+    jsonMagnetic["usuario_id"] = usuario_id;
+    jsonMagnetic["idnodo"] = "1";
     jsonMagnetic["sensor"] = "Magnetico";
     jsonMagnetic["valueMagnetico"] = magnetic;
-    jsonMagnetic["Fecha y Hora"] = fecha_hora;
+    jsonMagnetic["fechahora"] = fecha_hora;
     serializeJsonPretty(jsonMagnetic, variable);
     int lonMagnetic = variable.length() + 1;
     Serial.println(variable);
@@ -222,11 +234,12 @@ void loop() {
   if (presenciaCarro != presenciaAux) {
     presenciaAux = presenciaCarro;
     // Publicar la información solo cuando cambie el estado
-    jsonDistance["id"] = "01";
+    jsonMagnetic["usuario_id"] = usuario_id;
+    jsonMagnetic["idnodo"] = "1";
     jsonDistance["sensor"] = "Ultrasonido";
     jsonDistance["valueUltrasonido"] = distancia;
     jsonDistance["presence"] = presenciaCarro;
-    jsonDistance["Fecha y Hora"] = fecha_hora;
+    jsonDistance["fechahora"] = fecha_hora;
     serializeJsonPretty(jsonDistance, variable);
     int lonUltrasonido = variable.length() + 1;
     Serial.println(variable);

@@ -3,19 +3,18 @@ const mysql = require("mysql");
 const express = require("express");
 const morgan = require("morgan");
 const cors = require("cors");
-const routes = require("./routes/routes.js");
+const routes = require("./src/routes/routes.js");
 
 const app = express();//creamos una instancia de express
 
 //var client = mqtt.connect('mqtt://localhost)
 var client = mqtt.connect("mqtt://broker.mqtt-dashboard.com");
 
-app.set("port", process.env.PORT || 3000);
+app.set("port", 3000);
 
-app.use(buildContainer);
-app.use(bodyParser.json());
 app.use(morgan("dev"));
 app.use(cors());
+app.use(express.json());
 
 routes(app);
 
@@ -128,4 +127,9 @@ client.on("message", function (topic, message) {
     });
   }
   //client.end(); //si se habilita esta opción el servicio termina
+});
+
+//Start server
+app.listen(app.get("port"), () => {
+  console.log(`Servidor funcionando port http://localhost:${app.get("port")}`);
 });
