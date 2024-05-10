@@ -52,7 +52,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
     if (error) { return; }
     int estado = doc["estadoVs"];
     //Serial.println(estado);
-    if (estado == 0) {
+    if (estado == "Puerta abierta") {
       digitalWrite(Led, HIGH);
       Serial.println("Luz encendida");
     } else {

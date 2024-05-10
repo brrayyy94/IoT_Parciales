@@ -67,27 +67,30 @@ router.get("/ultrasonido/:idnodo", (req, res) => {
       res.status(500).send("Error al conectar a la base de datos.");
     } else {
       console.log("Conexión correcta.");
-
-      const query = `
+      try {
+        const query = `
           SELECT * FROM datosultrasonidoparcial
           WHERE DATE(fechahora) = CURDATE() AND idnodo = ?`;
 
-      tempConn.query(query, [idnodo], (error, result) => {
-        if (error) {
-          console.error(error.message);
-          res.status(500).send("Error en la ejecución del query.");
-        } else {
-          tempConn.release();
-
-          if (result.length > 0) {
-            res.json(result);
+        tempConn.query(query, [idnodo], (error, result) => {
+          if (error) {
+            console.error(error.message);
+            res.status(500).send("Error en la ejecución del query.");
           } else {
-            res.status(404).json({
-              mensaje: "No se encontraron registros para hoy con ese idnodo.",
-            });
+            tempConn.release();
+
+            if (result.length > 0) {
+              res.json(result);
+            } else {
+              res.status(404).json({
+                mensaje: "No se encontraron registros para hoy con ese idnodo.",
+              });
+            }
           }
-        }
-      });
+        });
+      } catch (error) {
+        console.error(error.message);
+      }
     }
   });
 });

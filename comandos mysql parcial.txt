@@ -18,7 +18,7 @@ FOREIGN KEY (usuario_id) REFERENCES usuarios(id));
 CREATE TABLE estado (
 id int AUTO_INCREMENT PRIMARY KEY,
 idnodo INT,
-valor INT,
+valor VARCHAR(255),
 fechahora DATETIME);
 
 CREATE TABLE usuarios (
@@ -27,3 +27,24 @@ user VARCHAR(255) NOT NULL,
 password VARCHAR(255) NOT NULL,
 userType ENUM('admin', 'cliente') NOT NULL
 );
+
+jsons mqttx:
+
+topico: brayan/SensorMagneticoParcial
+{
+  "usuario_id": 1,
+  "idnodo": 1,
+  "sensor": "Magnetico",
+  "valueMagnetico": "Puerta cerrada",
+  "fechahora": "2024-05-10 12:57:14:375"
+}
+
+topico: brayan/SensorUltrasonidoParcial
+{
+  "usuario_id": 1,
+  "idnodo": 1,
+  "sensor": "Ultrasonido",
+  "valueUltrasonido": 100,
+  "presence": "Ausente",
+  "fechahora": "2024-05-10 12:57:14:375"
+}
