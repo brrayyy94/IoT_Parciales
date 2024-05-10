@@ -92,7 +92,7 @@ router.get("/ultrasonido/:idnodo", (req, res) => {
   });
 });
 
-router.post("/ultrasonido/admin", (req, res) => {
+router.post("/ultrasonido", (req, res) => {
   var json1 = req.body;
   console.log(json1);
 

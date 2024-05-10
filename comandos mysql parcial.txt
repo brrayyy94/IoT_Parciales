@@ -17,11 +17,9 @@ FOREIGN KEY (usuario_id) REFERENCES usuarios(id));
 
 CREATE TABLE estado (
 id int AUTO_INCREMENT PRIMARY KEY,
-usuario_id INT NOT NULL,
 idnodo INT,
 valor INT,
-fechahora DATETIME,
-FOREIGN KEY (usuario_id) REFERENCES usuarios(id));
+fechahora DATETIME);
 
 CREATE TABLE usuarios (
 id INT AUTO_INCREMENT PRIMARY KEY,
