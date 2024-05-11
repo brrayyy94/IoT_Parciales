@@ -17,7 +17,8 @@
 const float sonido = 34300.0;  // Velocidad del sonido en cm/s
 int sensorValueMagnetic = HIGH;
 String magnetic, magnetic_previo, presenciaAux;
-const int usuario_id = 1;  //variable que almacena el id del usuario que inició sesión
+int usuario_id = 3;  //variable que almacena el id del usuario que inició sesión
+int idnodo = 5;
 
 // definir algunas constantes y variables necesarias
 //para establecer la conexión a un servidor MQTT
@@ -45,28 +46,17 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
   String json = String((char*)payload);
   Serial.println();
-
-  if (topic == "brayan/topico2") {
-    StaticJsonDocument<300> doc;
-    DeserializationError error = deserializeJson(doc, json);
-    if (error) { return; }
-    int estado = doc["estadoVs"];
-    //Serial.println(estado);
-    if (estado == "Puerta abierta") {
-      digitalWrite(Led, HIGH);
-      Serial.println("Luz encendida");
-    } else {
-      digitalWrite(Led, LOW);
-      Serial.println("Luz apagada");
-    }
-  }
-  if (topic == "brayan/login") {
-    StaticJsonDocument<300> doc;
-    DeserializationError error = deserializeJson(doc, json);
-    if (error) { return; }
-    int login = doc["id"];
-    Serial.println(login);
-    usuario_id=login;
+  StaticJsonDocument<300> doc;
+  DeserializationError error = deserializeJson(doc, json);
+  if (error) { return; }
+  const char* estado = doc["estadoVs"];
+  //Serial.println(estado);
+  if (strcmp(estado, "Puerta abierta") == 0) {
+    digitalWrite(Led, HIGH);
+    Serial.println("Luz encendida");
+  } else {
+    digitalWrite(Led, LOW);
+    Serial.println("Luz apagada");
   }
 }
 WiFiClient BClient;
@@ -92,7 +82,6 @@ void reconnect() {
       if (client.connect(mqttClientId, mqttUser, mqttPass)) {
         Serial.println("Connected to Broker");
         client.subscribe("brayan/topico2");
-        client.subscribe("brayan/login");
       } else {
         Serial.print("Failed to connect to Broker, rc=");
         Serial.print(client.state());
@@ -186,68 +175,75 @@ void loop() {
   }
   client.loop();
 
-  // Crear un objeto JSON StaticJsonDocument con capacidad suficiente
-  StaticJsonDocument<256> jsonMagnetic;
-  StaticJsonDocument<256> jsonDistance;
-  String variable;
+  if (usuario_id == 0) {
+    Serial.print("El usuario id es ");
+    Serial.print(usuario_id);
+    Serial.println(" no se ha iniciado sesión");
+    delay(1000);
+  } else {
+    // Crear un objeto JSON StaticJsonDocument con capacidad suficiente
+    StaticJsonDocument<256> jsonMagnetic;
+    StaticJsonDocument<256> jsonDistance;
+    String variable;
 
-  unsigned long t_unix_date1 = hora() - 18000;
-  // Obtener la fecha y hora en formato legible
-  String fecha_hora = String(year(t_unix_date1)) + "/" + String(month(t_unix_date1)) + "/" + String(day(t_unix_date1)) + " " + String(hour(t_unix_date1)) + ":" + String(minute(t_unix_date1)) + ":" + String(second(t_unix_date1));
+    unsigned long t_unix_date1 = hora() - 18000;
+    // Obtener la fecha y hora en formato legible
+    String fecha_hora = String(year(t_unix_date1)) + "/" + String(month(t_unix_date1)) + "/" + String(day(t_unix_date1)) + " " + String(hour(t_unix_date1)) + ":" + String(minute(t_unix_date1)) + ":" + String(second(t_unix_date1));
 
-  // Leer del sensor magnetico
-  // Obtener el estado actual de la puerta
-  String magnetic = validarPuerta();
-  // Comparar con el estado previo
-  if (magnetic != magnetic_previo) {  // Si el estado actual es diferente al estado previo
-    // Actualizar el estado previo
-    magnetic_previo = magnetic;
+    // Leer del sensor magnetico
+    // Obtener el estado actual de la puerta
+    String magnetic = validarPuerta();
+    // Comparar con el estado previo
+    if (magnetic != magnetic_previo) {  // Si el estado actual es diferente al estado previo
+      // Actualizar el estado previo
+      magnetic_previo = magnetic;
 
-    // Publicar la información
-    jsonMagnetic["usuario_id"] = usuario_id;
-    jsonMagnetic["idnodo"] = "1";
-    jsonMagnetic["sensor"] = "Magnetico";
-    jsonMagnetic["valueMagnetico"] = magnetic;
-    jsonMagnetic["fechahora"] = fecha_hora;
-    serializeJsonPretty(jsonMagnetic, variable);
-    int lonMagnetic = variable.length() + 1;
-    Serial.println(variable);
-    char datojson1[lonMagnetic];
-    variable.toCharArray(datojson1, lonMagnetic);
-    client.publish("brayan/SensorMagneticoParcial", datojson1);
+      // Publicar la información
+      jsonMagnetic["usuario_id"] = usuario_id;
+      jsonMagnetic["idnodo"] = idnodo;
+      jsonMagnetic["sensor"] = "Magnetico";
+      jsonMagnetic["valueMagnetico"] = magnetic;
+      jsonMagnetic["fechahora"] = fecha_hora;
+      serializeJsonPretty(jsonMagnetic, variable);
+      int lonMagnetic = variable.length() + 1;
+      Serial.println(variable);
+      char datojson1[lonMagnetic];
+      variable.toCharArray(datojson1, lonMagnetic);
+      client.publish("brayan/SensorMagneticoParcial", datojson1);
 
+      Serial.println();
+    }
+    // Leer del sensor de ultrasonido
+    // Preparamos el sensor de ultrasonidos
+    iniciarTrigger();
+    // Obtenemos la distancia
+    float distancia = calcularDistancia();
+    //teniendo como referencia una altura del techo al suelo de
+    //240 cm en el garaje y el auto una altura de 150 cm
+    String presenciaCarro = "";
+    if (distancia > 90) {
+      presenciaCarro = "Ausente";
+    } else if (distancia <= 90) {
+      presenciaCarro = "Presente";
+    }
+    if (presenciaCarro != presenciaAux) {
+      presenciaAux = presenciaCarro;
+      // Publicar la información solo cuando cambie el estado
+      jsonDistance["usuario_id"] = usuario_id;
+      jsonDistance["idnodo"] = idnodo;
+      jsonDistance["sensor"] = "Ultrasonido";
+      jsonDistance["valueUltrasonido"] = distancia;
+      jsonDistance["presence"] = presenciaCarro;
+      jsonDistance["fechahora"] = fecha_hora;
+      serializeJsonPretty(jsonDistance, variable);
+      int lonUltrasonido = variable.length() + 1;
+      char datojson2[lonUltrasonido];
+      variable.toCharArray(datojson2, lonUltrasonido);
+      Serial.println(variable);
+      client.publish("brayan/SensorUltrasonidoParcial", datojson2);
+      Serial.println();
+    }
+    delay(1000);
     Serial.println();
   }
-  // Leer del sensor de ultrasonido
-  // Preparamos el sensor de ultrasonidos
-  iniciarTrigger();
-  // Obtenemos la distancia
-  float distancia = calcularDistancia();
-  //teniendo como referencia una altura del techo al suelo de
-  //240 cm en el garaje y el auto una altura de 150 cm
-  String presenciaCarro = "";
-  if (distancia > 90) {
-    presenciaCarro = "Ausente";
-  } else if (distancia <= 90) {
-    presenciaCarro = "Presente";
-  }
-  if (presenciaCarro != presenciaAux) {
-    presenciaAux = presenciaCarro;
-    // Publicar la información solo cuando cambie el estado
-    jsonMagnetic["usuario_id"] = usuario_id;
-    jsonMagnetic["idnodo"] = "1";
-    jsonDistance["sensor"] = "Ultrasonido";
-    jsonDistance["valueUltrasonido"] = distancia;
-    jsonDistance["presence"] = presenciaCarro;
-    jsonDistance["fechahora"] = fecha_hora;
-    serializeJsonPretty(jsonDistance, variable);
-    int lonUltrasonido = variable.length() + 1;
-    Serial.println(variable);
-    char datojson2[lonUltrasonido];
-    variable.toCharArray(datojson2, lonUltrasonido);
-    client.publish("brayan/SensorUltrasonidoParcial", datojson2);
-    Serial.println();
-  }
-  delay(1000);
-  Serial.println();
 }

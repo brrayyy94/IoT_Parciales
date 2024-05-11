@@ -1,11 +1,8 @@
 const { Router } = require("express");
-const mqtt = require("mqtt");
 
 const router = Router();
 
 const mysql = require("mysql");
-
-var client = mqtt.connect("mqtt://broker.mqtt-dashboard.com");
 
 // se crea la conexión a mysql
 const connection = mysql.createPool({
@@ -106,10 +103,6 @@ router.post("/login", (req, res) => {
           const responseData = {}; // Objeto JSON para almacenar los resultados
 
           if (result.length > 0) {
-            client.publish(
-              "brayan/login",
-              JSON.stringify({ id: result[0].id })
-            );
             result.forEach((row, index) => {
               responseData[`user${index + 1}`] = row; // Almacena cada registro en el objeto JSON
             });
