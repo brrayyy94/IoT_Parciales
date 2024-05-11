@@ -17,9 +17,13 @@ FOREIGN KEY (usuario_id) REFERENCES usuarios(id));
 
 CREATE TABLE estado (
 id int AUTO_INCREMENT PRIMARY KEY,
+usuario_id VARCHAR(255),
 idnodo INT,
 valor VARCHAR(255),
-fechahora DATETIME);
+fechahora DATETIME
+FOREIGN KEY (usuario_id) REFERENCES usuarios(id));
+
+ALTER TABLE estado ADD COLUMN usuario_id VARCHAR(255) NOT NULL;
 
 CREATE TABLE usuarios (
 id INT AUTO_INCREMENT PRIMARY KEY,

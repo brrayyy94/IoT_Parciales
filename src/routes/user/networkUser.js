@@ -118,7 +118,8 @@ router.post("/login", (req, res) => {
   });
 });
 
-router.get("/estadoPuerta", (req, res) => {
+router.get("/estadoPuerta/:id", (req, res) => {
+  const { id } = req.params;
   connection.getConnection((error, tempConn) => {
     if (error) {
       console.error(error.message);
@@ -128,9 +129,9 @@ router.get("/estadoPuerta", (req, res) => {
 
       const query = `
             SELECT * FROM estado
-            WHERE DATE(fechahora) = CURDATE()`;
+            WHERE DATE(fechahora) = CURDATE() AND usuario_id = ?`;
 
-      tempConn.query(query, (error, result) => {
+      tempConn.query(query, [id], (error, result) => {
         if (error) {
           console.error(error.message);
           res.status(500).send("Error en la ejecución del query.");

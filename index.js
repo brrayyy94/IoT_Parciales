@@ -79,16 +79,16 @@ client.on("message", function (topic, message) {
               var presencia = json1.valueMagnetico;
 
               if (presencia == "Puerta abierta") {
-                json2 = { estadoVs: "Puerta abierta" };
+                json2 = { usuario_id: json1.usuario_id, estadoVs: "Puerta abierta"};
               } else {
-                json2 = { estadoVs: "Puerta cerrada" };
+                json2 = { usuario_id: json1.usuario_id, estadoVs: "Puerta cerrada" };
               }
 
               client.publish("brayan/topico2", JSON.stringify(json2));
 
               tempConn.query(
-                "INSERT INTO estado VALUES(null, ?, ?, now())",
-                [json1.idnodo, json2.estadoVs],
+                "INSERT INTO estado VALUES(null, ?, ?, now(), ?)",
+                [json1.idnodo, json2.estadoVs, json1.usuario_id],
                 function (error, result) {
                   //se ejecuta lainserción
                   if (error) {

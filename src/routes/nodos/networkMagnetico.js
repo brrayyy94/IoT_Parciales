@@ -19,7 +19,7 @@ router.get("/", (req, res) => {
 });
 
   //rutas para ultrasonido (get, post, delete, put)
-router.get("/magnetico", (req, res) => {
+router.get("/magnetico/admin", (req, res) => {
   var json1 = {}; //variable para almacenar cada registro que se lea, en  formato json
   var arreglo = []; //variable para almacenar todos los datos, en formato arreglo de json
   connection.getConnection(function (error, tempConn) {
@@ -30,7 +30,7 @@ router.get("/magnetico", (req, res) => {
       console.log("Conexion correcta.");
       //ejecución de la consulta
       tempConn.query(
-        "SELECT * FROM datosmagneticoparcial where id = 1",
+        "SELECT * FROM datosmagneticoparcial",
         function (error, result) {
           var resultado = result; //se almacena el resultado de la consulta en la variable resultado
           if (error) {
@@ -139,69 +139,6 @@ router.post("/magnetico", (req, res) => {
           }
         }
       });
-    }
-  });
-});
-
-router.delete("/magnetico", (req, res) => {
-  var json1 = req.body; // Se recibe el JSON con los datos
-  console.log(json1); // Se muestra en consola
-
-  connection.getConnection(function (error, tempConn) {
-    // Conexión a MySQL
-    try {
-      if (error) {
-        throw error; // En caso de error en la conexión
-      }
-
-      console.log("Conexión correcta.");
-
-      tempConn.query(
-        "DELETE FROM datosmagneticoparcial WHERE idnodo = ?",
-        [json1.idnodo],
-        function (error, result) {
-          // Se ejecuta la eliminación
-          if (error) {
-            throw error; // Lanzar error si la eliminación falla
-          } else {
-            // Se libera la conexión solo después de la operación exitosa
-            tempConn.release();
-            res.status(200).send(`Datos eliminados`);
-          }
-        }
-      );
-    } catch (error) {
-      // Manejo de errores
-      console.error(error.message);
-      res.status(500).send(error.message); // Enviar respuesta de error al cliente
-    }
-  });
-});
-
-router.put("/magnetico", (req, res) => {
-  var json1 = req.body;
-  console.log(json1);
-
-  connection.getConnection(function (error, tempConn) {
-    if (error) {
-      console.error(error.message);
-      res.status(500).send("Error al conectar a la base de datos.");
-    } else {
-      console.log("Conexión correcta.");
-
-      tempConn.query(
-        "UPDATE datosmagneticoparcial SET estadoPuerta = ? WHERE idnodo = ?",
-        [json1.estadoPuerta, json1.idnodo],
-        function (error, result) {
-          if (error) {
-            console.error(error.message);
-            res.status(500).send("Error al actualizar los datos.");
-          } else {
-            tempConn.release();
-            res.status(200).send("Datos actualizados correctamente.");
-          }
-        }
-      );
     }
   });
 });
