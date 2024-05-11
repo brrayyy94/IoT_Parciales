@@ -43,7 +43,7 @@ topico: brayan/SensorMagneticoParcial
   "fechahora": "2024-05-10 12:57:14:375"
 }
 
-topico: brayan/SensorUltrasonidoParcial
+brayan/SensorUltrasonidoParcial
 {
   "usuario_id": 1,
   "idnodo": 1,
