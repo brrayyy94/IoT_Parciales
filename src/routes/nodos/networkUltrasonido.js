@@ -18,7 +18,8 @@ const connection = mysql.createPool({
 });
 
 //rutas para ultrasonido (get, post, delete, put)
-router.get("/ultrasonido/admin", (req, res) => {
+router.get("/ultrasonido/admin/:idnodo", (req, res) => {
+  const { idnodo } = req.params;
   var json1 = {}; //variable para almacenar cada registro que se lea, en  formato json
   var arreglo = []; //variable para almacenar todos los datos, en formato arreglo de json
   connection.getConnection(function (error, tempConn) {
@@ -29,7 +30,7 @@ router.get("/ultrasonido/admin", (req, res) => {
       console.log("Conexion correcta.");
       //ejecución de la consulta
       tempConn.query(
-        "SELECT * FROM datosultrasonidoparcial",
+        "SELECT * FROM datosultrasonidoparcial where idnodo = ?", [idnodo],
         function (error, result) {
           var resultado = result; //se almacena el resultado de la consulta en la variable resultado
           if (error) {

@@ -4,6 +4,8 @@ const express = require("express");
 const morgan = require("morgan");
 const cors = require("cors");
 const routes = require("./src/routes/routes.js");
+const swaggerUIPath= require("swagger-ui-express");
+const swaggerjsonFilePath = require("./docs/swagger.json");
 
 const app = express(); //creamos una instancia de express
 
@@ -15,6 +17,7 @@ app.set("port", 3000);
 app.use(morgan("dev"));
 app.use(cors());
 app.use(express.json());
+app.use("/api-docs", swaggerUIPath.serve, swaggerUIPath.setup(swaggerjsonFilePath));
 
 routes(app);
 

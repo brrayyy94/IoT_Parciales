@@ -19,7 +19,8 @@ router.get("/", (req, res) => {
 });
 
   //rutas para ultrasonido (get, post, delete, put)
-router.get("/magnetico/admin", (req, res) => {
+router.get("/magnetico/admin/:idnodo", (req, res) => {
+  const { idnodo } = req.params;
   var json1 = {}; //variable para almacenar cada registro que se lea, en  formato json
   var arreglo = []; //variable para almacenar todos los datos, en formato arreglo de json
   connection.getConnection(function (error, tempConn) {
@@ -30,7 +31,7 @@ router.get("/magnetico/admin", (req, res) => {
       console.log("Conexion correcta.");
       //ejecución de la consulta
       tempConn.query(
-        "SELECT * FROM datosmagneticoparcial",
+        "SELECT * FROM datosmagneticoparcial where idnodo = ?", [idnodo],
         function (error, result) {
           var resultado = result; //se almacena el resultado de la consulta en la variable resultado
           if (error) {

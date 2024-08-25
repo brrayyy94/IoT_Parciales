@@ -17,8 +17,8 @@
 const float sonido = 34300.0;  // Velocidad del sonido en cm/s
 int sensorValueMagnetic = HIGH;
 String magnetic, magnetic_previo, presenciaAux;
-int usuario_id = 3;  //variable que almacena el id del usuario que inició sesión
-int idnodo = 5;
+int usuario_id = 1;  //variable que almacena el id del usuario que inició sesión
+int idnodo = 1;
 
 // definir algunas constantes y variables necesarias
 //para establecer la conexión a un servidor MQTT

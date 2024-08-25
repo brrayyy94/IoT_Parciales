@@ -1,0 +1,349 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "Servidor WeTo",
+    "description": "API for Managing Announcements in a Complex",
+    "contact": {
+      "name": "API Support",
+      "email": "brayan.maca@uao.edu.co"
+    }
+  },
+  "host": "localhost:3000",
+  "basePath": "/",
+  "tags": [
+    {
+      "name": "Servidor WeTo",
+      "description": "API for managing Announcenments in a complex"
+    }
+  ],
+  "schemes": [
+    "http"
+  ],
+  "securityDefinitions": {},
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/nodos/": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/nodos/magnetico/admin/{idnodo}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "idnodo",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/nodos/magnetico/{idnodo}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "idnodo",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/nodos/ultrasonido/admin/{idnodo}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "idnodo",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/nodos/ultrasonido/{idnodo}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "idnodo",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/user/": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/user/allNodos": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/user/register": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "user": {
+                  "example": "any"
+                },
+                "password": {
+                  "example": "any"
+                },
+                "userType": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/user/login": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "user": {
+                  "example": "any"
+                },
+                "password": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/user/estadoPuerta/{id}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/user/{id}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "servidorResponse": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "number",
+          "example": 200
+        },
+        "message": {
+          "type": "string",
+          "example": "Success"
+        }
+      }
+    },
+    "errorResponse.400": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "number",
+          "example": 400
+        },
+        "message": {
+          "type": "string",
+          "example": "The request was malformed or invalid. Please check the request parameters."
+        }
+      }
+    },
+    "errorResponse.401": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "number",
+          "example": 401
+        },
+        "message": {
+          "type": "string",
+          "example": "Authentication failed or user lacks proper authorization."
+        }
+      }
+    },
+    "errorResponse.403": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "number",
+          "example": 403
+        },
+        "message": {
+          "type": "string",
+          "example": "You do not have permission to access this resource."
+        }
+      }
+    },
+    "errorResponse.404": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "example": "404"
+        },
+        "message": {
+          "type": "string",
+          "example": "The requested resource could not be found on the server."
+        }
+      }
+    },
+    "errorResponse.500": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "number",
+          "example": 500
+        },
+        "message": {
+          "type": "string",
+          "example": "An unexpected error occurred on the server. Please try again later."
+        }
+      }
+    }
+  }
+}
